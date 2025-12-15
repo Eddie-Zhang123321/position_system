@@ -1,0 +1,203 @@
+/* 页面标题 */
+.page-header {
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.subtitle {
+  font-size: 26rpx;
+  color: #666;
+  margin-top: 10rpx;
+}
+
+/* 用户座位状态 */
+.user-seat-status {
+  margin-bottom: 30rpx;
+  text-align: center;
+  position: relative;
+}
+
+.bound-seat-info {
+  font-size: 24rpx;
+  color: #FF4D4F;
+  margin-top: 10rpx;
+  display: block;
+}
+
+.btn-unbind {
+  margin-top: 20rpx;
+  background-color: #FF4D4F;
+  color: white;
+  font-size: 24rpx;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200rpx;
+}
+
+.loading {
+  font-size: 28rpx;
+  color: #666;
+}
+
+/* 座位网格 */
+.seat-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 15rpx;
+  margin-bottom: 40rpx;
+}
+
+.seat-item {
+  background-color: #fff;
+  border: 2rpx solid #ddd;
+  border-radius: 8rpx;
+  padding: 15rpx 8rpx;
+  text-align: center;
+  position: relative;
+  min-height: 80rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.seat-id {
+  font-size: 24rpx;
+  font-weight: bold;
+  margin-bottom: 5rpx;
+  line-height: 1.2;
+}
+
+.seat-status {
+  font-size: 20rpx;
+  margin-bottom: 5rpx;
+  line-height: 1.2;
+}
+
+.seat-info {
+  font-size: 18rpx;
+  color: #666;
+  margin-bottom: 5rpx;
+  line-height: 1.2;
+}
+
+.bound-user {
+  display: block;
+  margin-bottom: 4rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seat-actions {
+  display: flex;
+  justify-content: center;
+  gap: 4rpx;
+  margin-top: 4rpx;
+}
+
+.action-btn {
+  font-size: 18rpx;
+  padding: 0 8rpx;
+  height: 30rpx;
+  line-height: 30rpx;
+  min-width: 40rpx;
+  text-align: center;
+  border-radius: 4rpx;
+}
+
+.select-btn {
+  background-color: #4A90E2;
+  color: white;
+}
+
+.qr-btn {
+  background-color: #52C41A;
+  color: white;
+}
+
+.sign-btn {
+  background-color: #FAAD14;
+  color: white;
+}
+
+/* 提示信息 */
+.tips {
+  text-align: center;
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 30rpx;
+}
+
+/* 二维码模态框 */
+.qr-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.qr-content {
+  background-color: white;
+  border-radius: 10rpx;
+  padding: 30rpx;
+  width: 80%;
+  max-width: 600rpx;
+  position: relative;
+}
+
+.qr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.qr-title {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.close-btn {
+  font-size: 40rpx;
+  color: #999;
+  background: none;
+  border: none;
+  padding: 0;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.qr-image {
+  width: 400rpx;
+  height: 400rpx;
+  margin: 0 auto;
+  display: block;
+}
+
+.qr-desc {
+  font-size: 24rpx;
+  color: #666;
+  text-align: center;
+  margin-top: 20rpx;
+}

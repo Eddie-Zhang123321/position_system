@@ -1,0 +1,61 @@
+<view class="container">
+  <!-- 欢迎卡片 -->
+  <view class="card header-card">
+    <view class="row space-between">
+      <view>
+        <view class="title">考研教室座位系统</view>
+        <view class="subtitle">欢迎，{{userInfo && (userInfo.name || userInfo.nickName) ? (userInfo.name || userInfo.nickName) : '同学'}}</view>
+      </view>
+      <van-loading wx:if="{{isLoginLoading}}" size="20px" type="spinner" />
+      <image wx:elif="{{userInfo && userInfo.avatarUrl}}" class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" />
+      <van-icon wx:else name="user-circle-o" size="32px" color="#4A90E2" />
+    </view>
+    <view wx:if="{{!hasProfile}}" class="auth-tip">
+      <text>请授权头像昵称以完善个人信息</text>
+      <van-button size="small" type="primary" round color="#4A90E2" bindtap="requestProfile">授权头像昵称</van-button>
+    </view>
+    <view class="seat-status">
+      <van-cell
+        title="绑定座位"
+        value="{{seatId ? ('座位 ' + seatId) : '暂未绑定'}}"
+        label="{{seatId ? '点击“座位图”可查看详情' : '请先前往座位图选择座位'}}"
+        use-label-slot
+        border="{{false}}"
+      />
+    </view>
+  </view>
+
+  <!-- 快捷入口 -->
+  <view class="card shortcut-card">
+    <view class="section-title">快捷入口</view>
+    <view class="shortcut-grid">
+      <van-button type="primary" round block color="#4A90E2" bindtap="goSeat">
+        <van-icon name="apps-o" size="18px" /> 座位图选座
+      </van-button>
+      <van-button type="info" round block plain bindtap="goSign">
+        <van-icon name="scan" size="18px" /> 扫码签到
+      </van-button>
+      <van-button type="warning" round block plain bindtap="goAdmin">
+        <van-icon name="manager-o" size="18px" /> 管理员中心
+      </van-button>
+    </view>
+  </view>
+
+  <!-- 最新签到记录 -->
+  <view class="card records-card">
+    <view class="section-title">最新签到</view>
+    <view wx:if="{{isLoading}}" class="loading-box">
+      <van-loading size="24px" color="#4A90E2" /> 加载中...
+    </view>
+    <block wx:if="{{!isLoading && signRecords.length}}">
+      <van-cell
+        wx:for="{{signRecords}}"
+        wx:key="sign_in_time"
+        title="{{item.address || '考研教室'}}"
+        label="座位 {{item.table_id || '--'}} · {{item.sign_in_time}}"
+        icon="clock-o"
+      />
+    </block>
+    <van-empty wx:if="{{!isLoading && signRecords.length === 0}}" description="暂无签到记录" />
+  </view>
+</view>

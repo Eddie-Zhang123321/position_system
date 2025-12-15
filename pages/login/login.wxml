@@ -1,0 +1,25 @@
+<view class="container">
+  <view class="login-card">
+    <image class="logo" src="/images/logo.png" mode="aspectFit"></image>
+    <view class="title">考研教室座位系统</view>
+    <view class="subtitle">请登录后使用</view>
+    
+    <button 
+      class="auth-btn {{hasUserInfo ? 'hidden' : ''}}" 
+      open-type="getUserInfo" 
+      bindgetuserinfo="getUserInfo"
+      bindtap="getUserInfo"
+    >获取用户信息</button>
+    
+    <button 
+      class="login-btn {{!hasUserInfo ? 'disabled' : ''}}" 
+      bindtap="login"
+      loading="{{isLoading}}"
+      disabled="{{isLoading || !hasUserInfo}}"
+    >{{isLoading ? '登录中...' : '登录'}}</button>
+    
+    <view class="tip" wx:if="{{!hasUserInfo}}">
+      <text>需要获取您的微信信息以完成登录</text>
+    </view>
+  </view>
+</view>

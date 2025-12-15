@@ -1,0 +1,105 @@
+/* 页面标题 */
+.page-header {
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+
+.title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 座位状态卡片 */
+.seat-status-card, .no-seat-card {
+  margin-bottom: 30rpx;
+  text-align: center;
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.seat-id {
+  font-size: 28rpx;
+  color: #FF4D4F;
+}
+
+/* 签到卡片 */
+.sign-card {
+  margin-bottom: 30rpx;
+  text-align: center;
+}
+
+.btn-sign {
+  background-color: #52C41A;
+  color: white;
+  border-radius: 10rpx;
+  padding: 20rpx 40rpx;
+  font-size: 28rpx;
+  border: none;
+  width: 80%;
+  margin: 0 auto;
+}
+
+.sign-tips {
+  font-size: 24rpx;
+  color: #666;
+  margin-top: 15rpx;
+  display: block;
+}
+
+/* 签到记录卡片 */
+.records-card {
+  margin-bottom: 30rpx;
+}
+
+.record-list {
+  margin-top: 20rpx;
+}
+
+.record-item {
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #eee;
+}
+
+.record-time {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+  display: block;
+}
+
+.record-info {
+  display: flex;
+  justify-content: space-between;
+}
+
+.record-address {
+  font-size: 26rpx;
+  color: #333;
+}
+
+.record-table {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.empty-records {
+  text-align: center;
+  padding: 40rpx 0;
+  font-size: 26rpx;
+  color: #999;
+}
+
+.loading {
+  text-align: center;
+  padding: 40rpx 0;
+  font-size: 26rpx;
+  color: #666;
+}
+

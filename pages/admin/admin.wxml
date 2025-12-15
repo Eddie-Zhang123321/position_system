@@ -1,0 +1,60 @@
+<!--pages/admin/admin.wxml-->
+<view class="container">
+  <view class="page-header">
+    <view class="title">管理员中心</view>
+    <view class="subtitle">座位 / 用户 / 签到总览</view>
+  </view>
+
+  <view class="card">
+    <view class="card-header">
+      <view class="card-title">座位管理</view>
+      <van-button size="small" type="primary" color="#4A90E2" bindtap="createSeat">创建座位</van-button>
+    </view>
+    <view wx:if="{{isLoading}}" class="loading-box">
+      <van-loading size="22px" color="#4A90E2" /> 加载中...
+    </view>
+    <block wx:else>
+      <van-cell-group>
+        <van-cell wx:for="{{tables}}" wx:key="id"
+          title="座位 {{item.id}}"
+          label="{{item.bind_user ? '已绑定：' + item.bind_user : '可用'}}"
+          value="{{item.bind_user ? '已占用' : '空闲'}}"
+          use-label-slot
+        >
+          <view slot="right-icon" wx:if="{{item.bind_user_openid}}">
+            <van-button size="mini" type="warning" plain
+              data-openid="{{item.bind_user_openid}}"
+              bindtap="unbindSeat"
+            >解绑</van-button>
+          </view>
+        </van-cell>
+      </van-cell-group>
+    </block>
+  </view>
+
+  <view class="card">
+    <view class="card-header">
+      <view class="card-title">用户列表</view>
+    </view>
+    <van-cell-group>
+      <van-cell wx:for="{{users}}" wx:key="openid"
+        title="{{item.name || '未命名'}}"
+        label="{{item.openid}}"
+        value="{{item.role === 'admin' ? '管理员' : '学生'}}"
+      />
+    </van-cell-group>
+  </view>
+
+  <view class="card">
+    <view class="card-header">
+      <view class="card-title">签到记录</view>
+    </view>
+    <van-cell-group>
+      <van-cell wx:for="{{records}}" wx:key="sign_in_time"
+        title="{{item.address || '考研教室'}}"
+        label="座位 {{item.table_id}} · {{item.sign_in_time}} · {{item.user_name || item.openid}}"
+        icon="clock-o"
+      />
+    </van-cell-group>
+  </view>
+</view>

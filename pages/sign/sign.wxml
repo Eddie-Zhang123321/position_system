@@ -1,0 +1,54 @@
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="page-header">
+    <text class="title">签到签退</text>
+  </view>
+
+  <!-- 座位状态 -->
+  <view class="card seat-status-card" wx:if="{{hasSeat}}">
+    <view class="flex-between">
+      <view>
+        <text class="card-title">已绑定座位</text>
+        <text class="seat-id">座位 {{seatInfo.id}}</text>
+      </view>
+      <text class="status-bound">已使用</text>
+    </view>
+  </view>
+
+  <view class="card no-seat-card" wx:if="{{!hasSeat}}">
+    <view class="flex-center">
+      <text class="card-title">暂未绑定座位</text>
+    </view>
+    <button class="btn-primary mt-20" bindtap="goBack">返回选座</button>
+  </view>
+
+  <!-- 签到按钮 -->
+  <view class="card sign-card" wx:if="{{hasSeat}}">
+    <button class="btn-sign" bindtap="scanSignIn">扫码签到</button>
+    <text class="sign-tips">扫描座位二维码进行签到</text>
+  </view>
+
+  <!-- 签到记录 -->
+  <view class="card records-card">
+    <view class="card-title">签到记录</view>
+    <view class="record-list" wx:if="{{!isLoading && signRecords.length > 0}}">
+      <block wx:for="{{signRecords}}" wx:key="sign_in_time">
+        <view class="record-item">
+          <view class="record-time">{{item.sign_in_time}}</view>
+          <view class="record-info">
+            <text class="record-address">{{item.address}}</text>
+            <text class="record-table">座位: {{item.table_id}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+    
+    <view class="empty-records" wx:if="{{!isLoading && signRecords.length === 0}}">
+      <text>暂无签到记录</text>
+    </view>
+    
+    <view class="loading" wx:if="{{isLoading}}">
+      <text>加载中...</text>
+    </view>
+  </view>
+</view>
