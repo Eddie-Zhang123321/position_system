@@ -8,6 +8,8 @@ Page({
     isLoading: true,
     isLoginLoading: false,
     userInfo: null,
+    avatarUrl: '',
+    nickname: '',
     hasProfile: false,
     seatId: null,
     signRecords: []
@@ -42,37 +44,46 @@ Page({
     app.globalData.userInfo = data
     this.setData({
       userInfo: data,
+      avatarUrl: data.avatarUrl || '',
+      nickname: data.name || data.nickName || '',
       seatId: data.table_id || null,
       hasProfile: !!data.name || !!data.nickname || !!data.nickName
     })
   },
 
-  // 申请微信头像昵称授权并同步昵称到后端
-  requestProfile() {
-    wx.getUserProfile({
-      desc: '用于完善头像与昵称',
-      success: async (res) => {
-        const info = res.userInfo
-        // 本地展示
-        this.setData({
-          userInfo: {
-            ...this.data.userInfo,
-            nickName: info.nickName,
-            avatarUrl: info.avatarUrl
-          },
-          hasProfile: true
-        })
-        // 同步昵称到后端（若接口存在）
-        try {
-          await api.user.setName(info.nickName)
-        } catch (err) {
-          console.warn('同步昵称失败，可稍后重试', err)
-        }
+  // 头像选择（官方 chooseAvatar）
+  onChooseAvatar(e) {
+    const avatarUrl = e.detail.avatarUrl
+    this.setData({
+      avatarUrl,
+      userInfo: {
+        ...this.data.userInfo,
+        avatarUrl
       },
-      fail: () => {
-        wx.showToast({ title: '未授权头像昵称', icon: 'none' })
-      }
+      hasProfile: !!(this.data.nickname || this.data.userInfo?.name || this.data.userInfo?.nickName)
     })
+    // 如需上传头像到后端，可在此追加接口调用
+  },
+
+  // 昵称输入完成时同步
+  async onNicknameBlur(e) {
+    const nickname = e.detail.value
+    this.setData({
+      nickname,
+      userInfo: {
+        ...this.data.userInfo,
+        nickName: nickname,
+        name: this.data.userInfo?.name || nickname
+      },
+      hasProfile: !!nickname
+    })
+    if (nickname) {
+      try {
+        await api.user.setName(nickname)
+      } catch (err) {
+        console.warn('同步昵称失败，可稍后重试', err)
+      }
+    }
   },
 
   async loadLatestRecords() {

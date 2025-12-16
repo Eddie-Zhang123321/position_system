@@ -10,9 +10,20 @@
       <image wx:elif="{{userInfo && userInfo.avatarUrl}}" class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" />
       <van-icon wx:else name="user-circle-o" size="32px" color="#4A90E2" />
     </view>
-    <view wx:if="{{!hasProfile}}" class="auth-tip">
-      <text>请授权头像昵称以完善个人信息</text>
-      <van-button size="small" type="primary" round color="#4A90E2" bindtap="requestProfile">授权头像昵称</van-button>
+    <view class="auth-tip">
+      <text>完善头像与昵称</text>
+    </view>
+    <view class="profile-row">
+      <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+        <image class="avatar-lg" src="{{avatarUrl || userInfo.avatarUrl || '/images/home.png'}}" mode="aspectFill"></image>
+      </button>
+      <input
+        class="nickname-input"
+        type="nickname"
+        placeholder="请输入昵称"
+        value="{{nickname || userInfo.nickName || userInfo.name}}"
+        bindblur="onNicknameBlur"
+      />
     </view>
     <view class="seat-status">
       <van-cell
