@@ -4,5 +4,6 @@
     "van-popup": "@vant/weapp/popup/index",
     "van-icon": "@vant/weapp/icon/index"
   },
-  "navigationBarTitleText": "座位图"
+  "navigationBarTitleText": "座位图",
+  "enablePullDownRefresh": true
 }

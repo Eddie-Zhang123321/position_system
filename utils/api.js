@@ -1,5 +1,5 @@
 // API请求基础配置
-const baseUrl = 'http://8.133.203.53:3608/v1/api'
+const baseUrl = 'https://api.this-is-ai.top/v1/api'
 
 // 统一请求封装：自动附加token，处理错误提示
 const request = (url, method = 'GET', data = {}, extraHeader = {}) => {
@@ -47,7 +47,14 @@ const request = (url, method = 'GET', data = {}, extraHeader = {}) => {
 }
 
 // 简化GET/POST调用
-const get = (url, params = {}, header = {}) => request(url, 'GET', params, header)
+const get = (url, params = {}, header = {}) => {
+  // GET 请求将 params 作为 query string 拼接
+  if (Object.keys(params).length > 0) {
+    const query = Object.keys(params).map(k => `${k}=${encodeURIComponent(params[k])}`).join('&')
+    url = url + (url.includes('?') ? '&' : '?') + query
+  }
+  return request(url, 'GET', {}, header)
+}
 const post = (url, data = {}, header = {}) => request(url, 'POST', data, header)
 
 // API接口集合
@@ -57,7 +64,11 @@ const api = {
     // 登录
     login: (code) => post('/user/login', { code }),
     // 设置用户名
-    setName: (name) => post('/user/set_name', { name }),
+    // 后端期望 JSON 字符串，例如 `"张三"`，而不是对象 { name: '张三' }
+    setName: (name) =>
+      request('/user/set_name', 'POST', JSON.stringify(name), {
+        'content-type': 'application/json'
+      }),
     // 获取当前用户信息
     getSelfInfo: () => get('/user/info/self'),
     // 获取所有用户信息（管理员）
@@ -89,12 +100,29 @@ const api = {
     // 签到
     signIn: (token, address, latitude, longitude) =>
       post('/sign/in', { token, address, latitude, longitude }),
+    // 签退（假设也是同一个接口，后端根据逻辑判断）
+    signOut: (token, address, latitude, longitude) =>
+      post('/sign/in', { token, address, latitude, longitude, typ: 'Out' }),
     // 获取当前用户签到记录
-    getRecords: () => get('/sign/records'),
+    getRecords: (afterTime) => {
+      const params = afterTime ? { after_time: afterTime } : {}
+      return get('/sign/records', params)
+    },
     // 获取指定用户签到记录（管理员）
-    getUserRecords: (openid) => get(`/sign/records/${openid}`),
+    getUserRecords: (openid, afterTime) => {
+      const params = afterTime ? { after_time: afterTime } : {}
+      return get(`/sign/records/${openid}`, params)
+    },
     // 获取所有用户签到记录（管理员）
-    getAllRecords: () => get('/sign/records_all')
+    getAllRecords: (afterTime) => {
+      const params = afterTime ? { after_time: afterTime } : {}
+      return get('/sign/records_all', params)
+    },
+    // 获取在线时长（管理员）
+    getOnlineDuration: (afterTime) => {
+      const params = { after_time: afterTime }
+      return get('/sign/online_duration', params)
+    }
   }
 }
 

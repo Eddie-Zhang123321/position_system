@@ -103,8 +103,22 @@ Page({
     wx.switchTab({ url: '/pages/sign/sign' })
   },
 
-  goAdmin() {
-    wx.navigateTo({ url: '/pages/admin/admin' })
+  async goAdmin() {
+    try {
+      wx.showLoading({ title: '权限检查...' })
+      // 先行校验，避免进入页面后再被踢出
+      const ok = await auth.isAdmin()
+      wx.hideLoading()
+      if (!ok) {
+        wx.showToast({ title: '需要管理员权限', icon: 'none' })
+        return
+      }
+      wx.navigateTo({ url: '/pages/admin/admin' })
+    } catch (err) {
+      wx.hideLoading()
+      console.error('管理员校验失败', err)
+      wx.showToast({ title: '校验失败，请重试', icon: 'none' })
+    }
   },
 
   onPullDownRefresh() {

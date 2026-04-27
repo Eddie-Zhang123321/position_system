@@ -1,60 +1,178 @@
-<!--pages/admin/admin.wxml-->
 <view class="container">
-  <view class="page-header">
-    <view class="title">管理员中心</view>
-    <view class="subtitle">座位 / 用户 / 签到总览</view>
+
+  <!-- 标签页切换 -->
+  <view class="tabs">
+    <view 
+      class="tab-item {{activeTab === 'online' ? 'active' : ''}}"
+      data-tab="online"
+      bindtap="switchTab"
+    >实时在线</view>
+    <view 
+      class="tab-item {{activeTab === 'duration' ? 'active' : ''}}"
+      data-tab="duration"
+      bindtap="switchTab"
+    >在线时长</view>
+    <view 
+      class="tab-item {{activeTab === 'seats' ? 'active' : ''}}"
+      data-tab="seats"
+      bindtap="switchTab"
+    >座位管理</view>
+    <view 
+      class="tab-item {{activeTab === 'records' ? 'active' : ''}}"
+      data-tab="records"
+      bindtap="switchTab"
+    >签到记录</view>
   </view>
 
-  <view class="card">
-    <view class="card-header">
-      <view class="card-title">座位管理</view>
-      <van-button size="small" type="primary" color="#4A90E2" bindtap="createSeat">创建座位</van-button>
+  <!-- 实时在线 -->
+  <view class="tab-content" wx:if="{{activeTab === 'online'}}">
+    <view class="card">
+      <view class="card-header">
+        <view class="card-title">实时在线情况</view>
+        <view class="online-count">在线: {{onlineUsers.length}} / {{users.length}}</view>
+      </view>
+      <view wx:if="{{isLoading}}" class="loading-box">
+        <van-loading size="22px" color="#4A90E2" /> 加载中...
+      </view>
+      <block wx:else>
+        <van-cell-group>
+          <van-cell wx:for="{{users}}" wx:key="openid"
+            title="{{item.name || '未命名'}}"
+            label="座位 {{item.table_id || '--'}}"
+            value="{{item.is_online ? '在线' : '离线'}}"
+            icon="{{item.is_online ? 'success' : 'cross'}}"
+            value-class="{{item.is_online ? 'online-status' : 'offline-status'}}"
+          />
+        </van-cell-group>
+        <van-empty wx:if="{{users.length === 0}}" description="暂无用户" />
+      </block>
     </view>
-    <view wx:if="{{isLoading}}" class="loading-box">
-      <van-loading size="22px" color="#4A90E2" /> 加载中...
+  </view>
+
+  <!-- 在线时长 -->
+  <view class="tab-content" wx:if="{{activeTab === 'duration'}}">
+    <view class="card">
+      <view class="card-header">
+        <view class="card-title">一周内在线时长</view>
+        <van-button size="small" type="primary" color="#4A90E2" bindtap="loadDurationData">刷新</van-button>
+      </view>
+      <view wx:if="{{isLoading}}" class="loading-box">
+        <van-loading size="22px" color="#4A90E2" /> 加载中...
+      </view>
+      <block wx:else>
+        <van-cell-group>
+          <van-cell wx:for="{{durationList}}" wx:key="openid"
+            title="{{item.name || '未命名'}}"
+            label="座位 {{item.table_id}}"
+            value="{{item.durationText}}"
+            icon="clock-o"
+            is-link
+            catchtap="viewUserSignRecords"
+            data-openid="{{item.openid}}"
+          />
+        </van-cell-group>
+        <van-empty wx:if="{{durationList.length === 0}}" description="暂无数据" />
+      </block>
     </view>
-    <block wx:else>
+  </view>
+
+  <!-- 座位管理 -->
+  <view class="tab-content" wx:if="{{activeTab === 'seats'}}">
+    <view class="card">
+      <view class="card-header">
+        <view class="card-title">座位管理</view>
+        <view class="card-actions">
+          <van-button size="small" type="info" color="#52C41A" bindtap="exportAllQRCodes" style="margin-right: 10rpx;">导出二维码</van-button>
+          <van-button size="small" type="primary" color="#4A90E2" bindtap="createSeat">创建座位</van-button>
+        </view>
+      </view>
+      <view wx:if="{{isLoading}}" class="loading-box">
+        <van-loading size="22px" color="#4A90E2" /> 加载中...
+      </view>
+      <block wx:else>
+        <van-cell-group>
+          <van-cell wx:for="{{tables}}" wx:key="id"
+            title="座位 {{item.id}}"
+            label="座位 {{item.id}}"
+            value="{{item.bind_user_openid ? (item.bindUserName || item.bind_user || '未知用户') + (item.bindUserOnline ? ' (在线)' : ' (离线)') : '未绑定'}}"
+            value-class="{{item.bind_user_openid ? (item.bindUserOnline ? 'online-status' : 'offline-status') : ''}}"
+          >
+            <view slot="right-icon" wx:if="{{item.bind_user_openid}}">
+              <van-button size="mini" type="warning" plain
+                data-openid="{{item.bind_user_openid}}"
+                bindtap="unbindSeat"
+              >解绑</van-button>
+            </view>
+          </van-cell>
+        </van-cell-group>
+      </block>
+    </view>
+  </view>
+
+  <!-- 签到记录 -->
+  <view class="tab-content" wx:if="{{activeTab === 'records'}}">
+    <view class="card">
+      <view class="card-header">
+        <view class="card-title">签到记录</view>
+      </view>
       <van-cell-group>
-        <van-cell wx:for="{{tables}}" wx:key="id"
-          title="座位 {{item.id}}"
-          label="{{item.bind_user ? '已绑定：' + item.bind_user : '可用'}}"
-          value="{{item.bind_user ? '已占用' : '空闲'}}"
-          use-label-slot
-        >
-          <view slot="right-icon" wx:if="{{item.bind_user_openid}}">
-            <van-button size="mini" type="warning" plain
-              data-openid="{{item.bind_user_openid}}"
-              bindtap="unbindSeat"
-            >解绑</van-button>
-          </view>
-        </van-cell>
+        <van-cell wx:for="{{records}}" wx:key="sign_in_time"
+          title="{{item.name || item.openid}}"
+          label="座位 {{item.table_id}} · {{item.sign_in_time}}"
+          value="{{item.typ === 'In' ? '签到' : '签退'}}"
+          value-class="{{item.typ === 'In' ? 'type-in' : 'type-out'}}"
+          icon="clock-o"
+        />
       </van-cell-group>
-    </block>
+      <van-empty wx:if="{{records.length === 0}}" description="暂无签到记录" />
+    </view>
   </view>
 
-  <view class="card">
-    <view class="card-header">
-      <view class="card-title">用户列表</view>
+  <!-- 所有二维码弹窗 -->
+  <van-popup show="{{showAllQRCodes}}" position="bottom" bind:close="closeAllQRCodes" custom-style="height: 80%;">
+    <view class="qr-codes-popup">
+      <view class="popup-header">
+        <view class="popup-title">所有座位二维码</view>
+        <van-icon name="cross" size="24px" bindtap="closeAllQRCodes" />
+      </view>
+      
+      <scroll-view class="qr-codes-scroll" scroll-y>
+        <view wx:if="{{loadingQRCodes}}" class="loading-box">
+          <van-loading size="24px" color="#4A90E2" /> 正在生成二维码...
+        </view>
+        <view wx:else class="qr-codes-grid">
+          <view wx:for="{{qrCodes}}" wx:key="id" class="qr-code-item">
+            <view class="qr-code-label">座位 {{item.id}}</view>
+            <view wx:if="{{item.qrImage}}" class="qr-code-wrapper">
+              <image 
+                class="qr-code-image" 
+                src="{{item.qrImage}}" 
+                mode="aspectFit"
+                data-id="{{item.id}}"
+                data-image="{{item.qrImage}}"
+                bindtap="previewQRCode"
+              />
+              <view class="qr-code-actions">
+                <view 
+                  class="qr-action-btn"
+                  data-id="{{item.id}}"
+                  data-image="{{item.qrImage}}"
+                  bindtap="previewQRCode"
+                >预览</view>
+                <view 
+                  class="qr-action-btn save-btn"
+                  data-id="{{item.id}}"
+                  data-image="{{item.qrImage}}"
+                  bindtap="saveQRCodeToAlbum"
+                >保存</view>
+              </view>
+            </view>
+            <view wx:else class="qr-code-error">
+              <text>加载失败</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
     </view>
-    <van-cell-group>
-      <van-cell wx:for="{{users}}" wx:key="openid"
-        title="{{item.name || '未命名'}}"
-        label="{{item.openid}}"
-        value="{{item.role === 'admin' ? '管理员' : '学生'}}"
-      />
-    </van-cell-group>
-  </view>
-
-  <view class="card">
-    <view class="card-header">
-      <view class="card-title">签到记录</view>
-    </view>
-    <van-cell-group>
-      <van-cell wx:for="{{records}}" wx:key="sign_in_time"
-        title="{{item.address || '考研教室'}}"
-        label="座位 {{item.table_id}} · {{item.sign_in_time}} · {{item.user_name || item.openid}}"
-        icon="clock-o"
-      />
-    </van-cell-group>
-  </view>
+  </van-popup>
 </view>

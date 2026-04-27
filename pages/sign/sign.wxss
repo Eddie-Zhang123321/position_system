@@ -10,8 +10,16 @@
   color: #333;
 }
 
+.subtitle {
+  font-size: 26rpx;
+  color: #666;
+  margin-top: 10rpx;
+  display: block;
+}
+
 /* 座位状态卡片 */
-.seat-status-card, .no-seat-card {
+.seat-status-card,
+.no-seat-card {
   margin-bottom: 30rpx;
   text-align: center;
 }
@@ -26,7 +34,39 @@
 
 .seat-id {
   font-size: 28rpx;
-  color: #FF4D4F;
+  color: #ff4d4f;
+}
+
+.status-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.online-status-badge {
+  display: inline-block;
+  padding: 4rpx 12rpx;
+  border-radius: 4rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.online-status-badge.online {
+  background-color: #e6f7ff;
+  color: #1890ff;
+}
+
+.online-status-badge.offline {
+  background-color: #f5f5f5;
+  color: #999;
 }
 
 /* 签到卡片 */
@@ -35,8 +75,29 @@
   text-align: center;
 }
 
+.sign-type-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.tab-item {
+  padding: 12rpx 40rpx;
+  border-radius: 8rpx;
+  background-color: #f5f5f5;
+  color: #666;
+  font-size: 28rpx;
+  transition: all 0.3s;
+}
+
+.tab-item.active {
+  background-color: #4a90e2;
+  color: white;
+}
+
 .btn-sign {
-  background-color: #52C41A;
+  background-color: #52c41a;
   color: white;
   border-radius: 10rpx;
   padding: 20rpx 40rpx;
@@ -50,6 +111,13 @@
   font-size: 24rpx;
   color: #666;
   margin-top: 15rpx;
+  display: block;
+}
+
+.sign-hint {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 10rpx;
   display: block;
 }
 
@@ -77,11 +145,31 @@
 .record-info {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 15rpx;
+}
+
+.record-type {
+  font-size: 24rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 4rpx;
+  font-weight: bold;
+}
+
+.record-type.type-in {
+  background-color: #e6f7ff;
+  color: #1890ff;
+}
+
+.record-type.type-out {
+  background-color: #fff7e6;
+  color: #fa8c16;
 }
 
 .record-address {
   font-size: 26rpx;
   color: #333;
+  flex: 1;
 }
 
 .record-table {
@@ -102,4 +190,3 @@
   font-size: 26rpx;
   color: #666;
 }
-

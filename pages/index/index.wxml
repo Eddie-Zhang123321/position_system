@@ -1,4 +1,4 @@
-<view class="container">
+  <view class="container">
   <!-- 欢迎卡片 -->
   <view class="card header-card">
     <view class="row space-between">
@@ -14,9 +14,9 @@
       <text>完善头像与昵称</text>
     </view>
     <view class="profile-row">
-      <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+        <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
         <image class="avatar-lg" src="{{avatarUrl || userInfo.avatarUrl || '/images/home.png'}}" mode="aspectFill"></image>
-      </button>
+        </button>
       <input
         class="nickname-input"
         type="nickname"
@@ -24,7 +24,7 @@
         value="{{nickname || userInfo.nickName || userInfo.name}}"
         bindblur="onNicknameBlur"
       />
-    </view>
+        </view>
     <view class="seat-status">
       <van-cell
         title="绑定座位"

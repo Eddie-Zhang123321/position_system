@@ -7,7 +7,8 @@ App({
   globalData: {
     userInfo: null,
     token: null,
-    isAdmin: false
+    isAdmin: false,
+    viewUserOpenid: null // 管理员查看指定用户的 openid
   },
   
   // 检查登录状态

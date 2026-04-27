@@ -9,20 +9,39 @@ Page({
     hasSeat: false,
     seatInfo: null,
     signRecords: [],
-    scanResult: null
+    scanResult: null,
+    nextSignType: 'In', // 根据最后一条记录自动判断下一次是签到还是签退
+    isOnline: false, // 当前在线状态
+    viewOpenid: null, // 查看指定用户的 openid（管理员模式）
+    viewUserName: '' // 查看的用户名称（管理员模式）
   },
 
-  onLoad: function() {
-    this.checkLoginAndLoadData()
+  onLoad: function(options) {
+    // 如果传入了 openid，说明是管理员查看指定用户的记录（通过 URL 参数，非 tabBar 跳转）
+    if (options.openid) {
+      this.setData({ viewOpenid: options.openid })
+      this.loadUserRecords(options.openid)
+    } else {
+      this.checkLoginAndLoadData()
+    }
   },
 
   onShow: function() {
-    // 从全局数据获取选中的座位ID
-    const selectedTableId = app.globalData.selectedTableId
-    
-    // 如果有选中的座位，加载签到记录
-    if (selectedTableId) {
-      this.loadSignRecords()
+    const app = getApp()
+    // 检查全局数据中是否有 viewUserOpenid（管理员从 tabBar 跳转过来）
+    if (app.globalData.viewUserOpenid) {
+      const viewOpenid = app.globalData.viewUserOpenid
+      // 清除全局数据，避免下次进入页面时误触发
+      app.globalData.viewUserOpenid = null
+      
+      // 如果当前不是查看该用户，则加载该用户的记录
+      if (this.data.viewOpenid !== viewOpenid) {
+        this.setData({ viewOpenid: viewOpenid })
+        this.loadUserRecords(viewOpenid)
+      }
+    } else if (!this.data.viewOpenid) {
+      // 如果是查看自己的记录，每次返回页面都重新拉取
+      this.checkLoginAndLoadData()
     }
   },
 
@@ -65,25 +84,26 @@ Page({
   loadUserInfo: function() {
     auth.getCurrentUserInfo()
       .then(data => {
+      this.setData({
+        userInfo: data,
+        isOnline: data.is_online || false // 保存在线状态
+      })
+      
+      // 检查是否绑定座位
+      if (data.table_id) {
         this.setData({
-          userInfo: data
+          hasSeat: true,
+          seatInfo: {
+            id: data.table_id,
+            name: data.name
+          }
         })
-        
-        // 检查是否绑定座位
-        if (data.table_id) {
-          this.setData({
-            hasSeat: true,
-            seatInfo: {
-              id: data.table_id,
-              name: data.name
-            }
-          })
-        } else {
-          this.setData({
-            hasSeat: false,
-            seatInfo: null
-          })
-        }
+      } else {
+        this.setData({
+          hasSeat: false,
+          seatInfo: null
+        })
+      }
         
         // 加载签到记录
         this.loadSignRecords()
@@ -96,7 +116,7 @@ Page({
       })
   },
 
-  // 加载签到记录
+  // 加载签到记录（自己的）
   loadSignRecords: function() {
     this.setData({
       isLoading: true
@@ -104,8 +124,25 @@ Page({
 
     api.sign.getRecords()
       .then(data => {
+        // 按时间倒序排序（最近的在上）
+        let sortedRecords = []
+        if (data && data.length > 0) {
+          sortedRecords = [...data].sort((a, b) => 
+            new Date(b.sign_in_time) - new Date(a.sign_in_time)
+          )
+        }
+        
+        // 根据最后一条记录判断下一次是签到还是签退
+        let nextType = 'In' // 默认签到
+        if (sortedRecords.length > 0) {
+          const lastRecord = sortedRecords[0]
+          // 如果最后一条是签到，下一次就是签退；如果是签退，下一次就是签到
+          nextType = lastRecord.typ === 'In' ? 'Out' : 'In'
+        }
+        
         this.setData({
-          signRecords: data,
+          signRecords: sortedRecords, // 使用排序后的数据
+          nextSignType: nextType,
           isLoading: false
         })
       })
@@ -132,15 +169,66 @@ Page({
       })
   },
 
-  // 扫描签到
-  scanSignIn: function() {
+  // 加载指定用户的签到记录（管理员模式）
+  loadUserRecords: function(openid) {
+    this.setData({
+      isLoading: true
+    })
+
+    // 先获取用户信息
+    api.user.getUserInfo(openid)
+      .then(userInfo => {
+        this.setData({
+          viewUserName: userInfo.name || '未命名',
+          hasSeat: !!userInfo.table_id,
+          seatInfo: userInfo.table_id ? { id: userInfo.table_id } : null,
+          isOnline: userInfo.is_online || false
+        })
+      })
+      .catch(err => {
+        console.warn('获取用户信息失败', err)
+      })
+
+    // 获取签到记录
+    api.sign.getUserRecords(openid)
+      .then(data => {
+        // 按时间倒序排序（最近的在上）
+        let sortedRecords = []
+        if (data && data.length > 0) {
+          sortedRecords = [...data].sort((a, b) => 
+            new Date(b.sign_in_time) - new Date(a.sign_in_time)
+          )
+        }
+        
+        this.setData({
+          signRecords: sortedRecords, // 使用排序后的数据
+          isLoading: false
+        })
+      })
+      .catch(err => {
+        console.error('加载用户签到记录失败', err)
+        this.setData({
+          isLoading: false
+        })
+        wx.showToast({
+          title: '加载失败',
+          icon: 'none'
+        })
+      })
+  },
+
+  // 扫描签到/签退（自动判断）
+  scanSign: function() {
+    const type = this.data.nextSignType
+    const typeText = type === 'In' ? '签到' : '签退'
+    
     wx.scanCode({
       scanType: ['qrCode'],
       success: (res) => {
         const token = res.result
         auth.getLocation()
           .then((location) => {
-            this.performSignIn(token, location.latitude, location.longitude)
+            this.performSign(token, location.latitude, location.longitude, type)
           })
           .catch((err) => {
             console.error('获取位置失败', err)
@@ -153,31 +241,36 @@ Page({
     })
   },
 
-  // 执行签到
-  performSignIn: function(token, latitude, longitude) {
+  // 执行签到/签退
+  performSign: function(token, latitude, longitude, type) {
+    const typeText = type === 'In' ? '签到' : '签退'
     wx.showLoading({
-      title: '签到中...'
+      title: `${typeText}中...`
     })
 
     const address = '考研教室'
-    api.sign.signIn(token, address, latitude, longitude)
+    const apiCall = type === 'In' 
+      ? api.sign.signIn(token, address, latitude, longitude)
+      : api.sign.signOut(token, address, latitude, longitude)
+    
+    apiCall
       .then(res => {
         wx.hideLoading()
-        console.log('签到成功', res)
+        console.log(`${typeText}成功`, res)
         
         wx.showToast({
-          title: '签到成功',
+          title: `${typeText}成功`,
           icon: 'success'
         })
         
-        // 刷新签到记录
+        // 刷新签到记录（会自动更新 nextSignType）
         this.loadSignRecords()
       })
       .catch(err => {
         wx.hideLoading()
-        console.error('签到失败', err)
+        console.error(`${typeText}失败`, err)
         
-        let errorMsg = '签到失败'
+        let errorMsg = `${typeText}失败`
         if (err.statusCode === 401) {
           errorMsg = '二维码已过期或无效'
         } else if (err.statusCode === 400) {

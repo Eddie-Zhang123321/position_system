@@ -9,10 +9,7 @@ Page({
     isLoading: true,
     isAdmin: false,
     hasBoundSeat: false,
-    boundSeatId: null,
-    showQRCode: false,
-    qrCodeImage: '',
-    qrCodeId: null
+    boundSeatId: null
   },
 
   onLoad: function() {
@@ -20,14 +17,19 @@ Page({
   },
 
   onShow: function() {
+    // 每次切换到座位页都检查登录并刷新数据
+    if (!auth.isLoggedIn()) {
+      this.checkLoginAndRole()
+      return
+    }
     if (app.globalData.userInfo) {
       this.setData({
         userInfo: app.globalData.userInfo,
         isAdmin: app.globalData.isAdmin
       })
-      this.loadTables()
-      this.checkBoundSeat()
     }
+    this.loadTables()
+    this.checkBoundSeat()
   },
 
   // 检查登录和权限
@@ -111,7 +113,9 @@ Page({
       })
   },
 
-  // 加载座位信息
+ 
+
+  // 加载座位信息（真实接口）
   loadTables: function() {
     this.setData({
       isLoading: true
@@ -241,7 +245,8 @@ Page({
         
         let errorMsg = '绑定失败'
         if (err.statusCode === 409) {
-          errorMsg = '该座位已被绑定'
+          // 抢座失败：该座位在你点之前已被别人占用
+          errorMsg = '手慢了，座位已被抢占'
         } else if (err.statusCode === 401) {
           errorMsg = '未授权，请重新登录'
           this.login()
@@ -251,6 +256,9 @@ Page({
           title: errorMsg,
           icon: 'none'
         })
+
+        // 不论失败原因，重新拉取最新座位状态，适配抢座场景
+        this.loadTables()
       })
   },
 
@@ -314,46 +322,6 @@ Page({
           icon: 'none'
         })
       })
-  },
-
-  // 获取座位二维码
-  getSeatQRCode: function(e) {
-    const tableId = e.currentTarget.dataset.id
-    
-    wx.showLoading({
-      title: '获取中...'
-    })
-    
-    api.table.getQRCode(tableId)
-      .then(res => {
-        wx.hideLoading()
-        // res 为 arraybuffer，转 base64
-        const base64 = wx.arrayBufferToBase64(res)
-        const img = `data:image/png;base64,${base64}`
-        this.setData({
-          showQRCode: true,
-          qrCodeImage: img,
-          qrCodeId: tableId
-        })
-      })
-      .catch(err => {
-        wx.hideLoading()
-        console.error('获取二维码失败', err)
-        
-        wx.showToast({
-          title: '获取二维码失败',
-          icon: 'none'
-        })
-      })
-  },
-
-  // 关闭二维码
-  closeQRCode: function() {
-    this.setData({
-      showQRCode: false,
-      qrCodeImage: '',
-      qrCodeId: null
-    })
   },
 
   // 进入签到页面

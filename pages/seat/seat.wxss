@@ -50,22 +50,27 @@
   color: #666;
 }
 
-/* 座位网格 */
+/* 可滚动区域 + 座位网格 */
+.seat-scroll {
+  max-height: 900rpx;
+}
+
 .seat-grid {
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 15rpx;
-  margin-bottom: 40rpx;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16rpx;
+  margin-bottom: 30rpx;
+  padding: 10rpx 20rpx;
 }
 
 .seat-item {
   background-color: #fff;
   border: 2rpx solid #ddd;
   border-radius: 8rpx;
-  padding: 15rpx 8rpx;
+  padding: 12rpx 6rpx;
   text-align: center;
   position: relative;
-  min-height: 80rpx;
+  min-height: 100rpx;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -73,22 +78,22 @@
 }
 
 .seat-id {
-  font-size: 24rpx;
+  font-size: 26rpx;
   font-weight: bold;
-  margin-bottom: 5rpx;
+  margin-bottom: 6rpx;
   line-height: 1.2;
 }
 
 .seat-status {
   font-size: 20rpx;
-  margin-bottom: 5rpx;
+  margin-bottom: 6rpx;
   line-height: 1.2;
 }
 
 .seat-info {
   font-size: 18rpx;
   color: #666;
-  margin-bottom: 5rpx;
+  margin-bottom: 4rpx;
   line-height: 1.2;
 }
 
@@ -103,15 +108,15 @@
 .seat-actions {
   display: flex;
   justify-content: center;
-  gap: 4rpx;
-  margin-top: 4rpx;
+  gap: 8rpx;
+  margin-top: 6rpx;
 }
 
 .action-btn {
   font-size: 18rpx;
   padding: 0 8rpx;
-  height: 30rpx;
-  line-height: 30rpx;
+  height: 34rpx;
+  line-height: 34rpx;
   min-width: 40rpx;
   text-align: center;
   border-radius: 4rpx;
