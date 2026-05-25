@@ -41,6 +41,9 @@
       "desc": "你的位置信息将用于签到"
     }
   },
+  "requiredPrivateInfos": [
+    "getLocation"
+  ],
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents",
   "usingComponents": {

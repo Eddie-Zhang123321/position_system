@@ -7,17 +7,12 @@
 
   <!-- 座位状态 -->
   <view class="card seat-status-card" wx:if="{{hasSeat}}">
-    <view class="status-content">
-      <view class="status-item">
-        <text class="card-title">已绑定座位</text>
-        <text class="seat-id">座位 {{seatInfo.id}}</text>
-      </view>
-      <view class="status-item">
-        <text class="status-bound">已使用</text>
-        <view class="online-status-badge {{isOnline ? 'online' : 'offline'}}">
-          {{isOnline ? '在线' : '离线'}}
-        </view>
-      </view>
+    <view class="status-row">
+      <text class="card-title">已绑定座位</text>
+      <text class="seat-id">座位 {{seatInfo.id}}</text>
+    </view>
+    <view class="online-big {{isOnline ? 'online' : 'offline'}}">
+      {{isOnline ? '● 在线' : '○ 离线'}}
     </view>
   </view>
 
@@ -28,13 +23,13 @@
     <button class="btn-primary mt-20" bindtap="goBack">返回选座</button>
   </view>
 
-  <!-- 签到/签退按钮（自动判断）- 仅自己查看时显示 -->
+  <!-- 签到/签退按钮 - 仅自己查看时显示 -->
   <view class="card sign-card" wx:if="{{hasSeat && !viewOpenid}}">
     <button class="btn-sign" bindtap="scanSign">
-      {{nextSignType === 'In' ? '扫码签到' : '扫码签退'}}
+      {{isOnline ? '扫码签退' : '扫码签到'}}
     </button>
-    <text class="sign-tips">扫描座位二维码进行{{nextSignType === 'In' ? '签到' : '签退'}}</text>
-    <text class="sign-hint">系统会根据您的记录自动判断</text>
+    <text class="sign-tips">扫描座位二维码进行{{isOnline ? '签退' : '签到'}}</text>
+    <text class="sign-hint">系统会根据您的当前状态自动判断</text>
   </view>
 
   <!-- 签到记录 -->
@@ -48,8 +43,8 @@
             <text class="record-type {{item.typ === 'In' ? 'type-in' : 'type-out'}}">
               {{item.typ === 'In' ? '签到' : '签退'}}
             </text>
-            <text class="record-address">{{item.address}}</text>
-            <text class="record-table">座位: {{item.table_id}}</text>
+            <text class="record-address">{{item.address || '考研教室'}}</text>
+            <text class="record-table">座位: {{item.table_id || '--'}}</text>
           </view>
         </view>
       </block>

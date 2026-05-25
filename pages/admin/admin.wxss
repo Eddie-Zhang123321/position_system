@@ -197,3 +197,107 @@
   color: #999;
   font-size: 24rpx;
 }
+
+/* 实时在线 - 座位网格 */
+.seat-scroll {
+  max-height: 700rpx;
+}
+
+.seat-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14rpx;
+  padding: 10rpx 0;
+}
+
+.seat-card {
+  background: #fff;
+  border: 2rpx solid #ddd;
+  border-radius: 10rpx;
+  padding: 16rpx 6rpx 12rpx;
+  text-align: center;
+  min-height: 120rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  box-sizing: border-box;
+}
+
+.seat-card.seat-online {
+  border-color: #52C41A;
+  background: #f6ffed;
+}
+
+.seat-card.seat-offline {
+  border-color: #ff7875;
+  background: #fff2f0;
+}
+
+.seat-card.seat-empty {
+  border-color: #d9d9d9;
+  background: #fafafa;
+}
+
+.seat-num {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #333;
+}
+
+.seat-bind-name {
+  font-size: 22rpx;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.seat-online-tag {
+  font-size: 20rpx;
+}
+
+.tag-online {
+  color: #52C41A;
+}
+
+.tag-offline {
+  color: #ff4d4f;
+}
+
+/* 图例 */
+.seat-legend {
+  display: flex;
+  justify-content: center;
+  gap: 30rpx;
+  margin-top: 20rpx;
+  font-size: 22rpx;
+  color: #666;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-online {
+  background: #52C41A;
+}
+
+.dot-offline {
+  background: #ff7875;
+}
+
+.dot-empty {
+  background: #d9d9d9;
+}

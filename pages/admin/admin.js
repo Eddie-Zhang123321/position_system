@@ -1,6 +1,16 @@
 import api from '../../utils/api'
 import auth from '../../utils/auth'
 
+// 格式化时间：后端返 UTC，手动解析 +8 转北京时间
+const formatRecordTime = (timeStr) => {
+  if (!timeStr) return ''
+  const m = timeStr.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/)
+  if (!m) return timeStr.substring(0, 16).replace('T', ' ')
+  const bj = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) + 8 * 36e5)
+  const pad = n => String(n).padStart(2, '0')
+  return `${bj.getUTCFullYear()}-${pad(bj.getUTCMonth() + 1)}-${pad(bj.getUTCDate())} ${pad(bj.getUTCHours())}:${pad(bj.getUTCMinutes())}`
+}
+
 Page({
   data: {
     isLoading: true,
@@ -114,12 +124,17 @@ Page({
         console.warn('加载在线时长失败', err)
       }
       
+      // 统计：已绑定座位数（有 bind_user_openid 的座位）
+      const boundSeatCount = (tables || []).filter(t => t.bind_user_openid).length
+
       this.setData({
         tables: tablesWithUser,  // 使用关联了用户信息的座位列表
         users: sortedUsers,  // 使用排序后的用户列表
         onlineUsers: onlineUsers,
+        onlineCount: onlineUsers.length,
+        boundSeatCount: boundSeatCount,
         durationList: durationList,
-        records: records || [],
+        records: (records || []).map(r => ({ ...r, sign_in_time: formatRecordTime(r.sign_in_time) })),
         isLoading: false
       })
     } catch (err) {

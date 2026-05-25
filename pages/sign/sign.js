@@ -3,6 +3,18 @@ const app = getApp()
 import api from '../../utils/api'
 import auth from '../../utils/auth'
 
+// 格式化时间：将 2026-04-27T14:30 转为 2026-04-27 14:30
+// 格式化时间：后端返 UTC，手动解析 +8 转北京时间
+const formatRecordTime = (timeStr) => {
+  if (!timeStr) return ''
+  const m = timeStr.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/)
+  if (!m) return timeStr.substring(0, 16).replace('T', ' ')
+  // Date.UTC 强制按 UTC 解析，再 +8h 得到北京时间
+  const bj = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) + 8 * 36e5)
+  const pad = n => String(n).padStart(2, '0')
+  return `${bj.getUTCFullYear()}-${pad(bj.getUTCMonth() + 1)}-${pad(bj.getUTCDate())} ${pad(bj.getUTCHours())}:${pad(bj.getUTCMinutes())}`
+}
+
 Page({
   data: {
     isLoading: true,
@@ -127,9 +139,9 @@ Page({
         // 按时间倒序排序（最近的在上）
         let sortedRecords = []
         if (data && data.length > 0) {
-          sortedRecords = [...data].sort((a, b) => 
-            new Date(b.sign_in_time) - new Date(a.sign_in_time)
-          )
+          sortedRecords = [...data]
+            .map(r => ({ ...r, sign_in_time: formatRecordTime(r.sign_in_time) }))
+            .sort((a, b) => b.sign_in_time.localeCompare(a.sign_in_time))
         }
         
         // 根据最后一条记录判断下一次是签到还是签退
@@ -195,9 +207,9 @@ Page({
         // 按时间倒序排序（最近的在上）
         let sortedRecords = []
         if (data && data.length > 0) {
-          sortedRecords = [...data].sort((a, b) => 
-            new Date(b.sign_in_time) - new Date(a.sign_in_time)
-          )
+          sortedRecords = [...data]
+            .map(r => ({ ...r, sign_in_time: formatRecordTime(r.sign_in_time) }))
+            .sort((a, b) => b.sign_in_time.localeCompare(a.sign_in_time))
         }
         
         this.setData({
@@ -232,7 +244,21 @@ Page({
           })
           .catch((err) => {
             console.error('获取位置失败', err)
-            wx.showToast({ title: '获取位置失败', icon: 'none' })
+            const errMsg = err?.errMsg || ''
+            if (errMsg.includes('auth deny') || errMsg.includes('authorize')) {
+              wx.showModal({
+                title: '需要位置权限',
+                content: '签到需要获取您的位置信息，请在设置中开启位置权限',
+                confirmText: '去设置',
+                success: (modalRes) => {
+                  if (modalRes.confirm) {
+                    wx.openSetting()
+                  }
+                }
+              })
+            } else {
+              wx.showToast({ title: '获取位置失败，请重试', icon: 'none' })
+            }
           })
       },
       fail: () => {
@@ -263,8 +289,8 @@ Page({
           icon: 'success'
         })
         
-        // 刷新签到记录（会自动更新 nextSignType）
-        this.loadSignRecords()
+        // 刷新签到记录和在线状态
+        this.loadUserInfo()
       })
       .catch(err => {
         wx.hideLoading()
@@ -274,7 +300,7 @@ Page({
         if (err.statusCode === 401) {
           errorMsg = '二维码已过期或无效'
         } else if (err.statusCode === 400) {
-          errorMsg = '请求参数错误'
+          errorMsg = '您不在地理签到范围内'
         }
         
         wx.showToast({

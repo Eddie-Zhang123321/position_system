@@ -3,20 +3,38 @@ const app = getApp()
 import api from '../../utils/api'
 import auth from '../../utils/auth'
 
+// 格式化时间：后端返 UTC，手动解析 +8 转北京时间
+const formatRecordTime = (timeStr) => {
+  if (!timeStr) return ''
+  const m = timeStr.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/)
+  if (!m) return timeStr.substring(0, 16).replace('T', ' ')
+  const bj = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) + 8 * 36e5)
+  const pad = n => String(n).padStart(2, '0')
+  return `${bj.getUTCFullYear()}-${pad(bj.getUTCMonth() + 1)}-${pad(bj.getUTCDate())} ${pad(bj.getUTCHours())}:${pad(bj.getUTCMinutes())}`
+}
+
 Page({
   data: {
     isLoading: true,
     isLoginLoading: false,
     userInfo: null,
-    avatarUrl: '',
     nickname: '',
-    hasProfile: false,
     seatId: null,
-    signRecords: []
+    signRecords: [],
+    countdown: { days: '--', hours: '--', minutes: '--', seconds: '--' }
   },
 
   onShow() {
     this.initPage()
+    this.startCountdown()
+  },
+
+  onHide() {
+    this.stopCountdown()
+  },
+
+  onUnload() {
+    this.stopCountdown()
   },
 
   async initPage() {
@@ -44,39 +62,15 @@ Page({
     app.globalData.userInfo = data
     this.setData({
       userInfo: data,
-      avatarUrl: data.avatarUrl || '',
       nickname: data.name || data.nickName || '',
-      seatId: data.table_id || null,
-      hasProfile: !!data.name || !!data.nickname || !!data.nickName
+      seatId: data.table_id || null
     })
-  },
-
-  // 头像选择（官方 chooseAvatar）
-  onChooseAvatar(e) {
-    const avatarUrl = e.detail.avatarUrl
-    this.setData({
-      avatarUrl,
-      userInfo: {
-        ...this.data.userInfo,
-        avatarUrl
-      },
-      hasProfile: !!(this.data.nickname || this.data.userInfo?.name || this.data.userInfo?.nickName)
-    })
-    // 如需上传头像到后端，可在此追加接口调用
   },
 
   // 昵称输入完成时同步
   async onNicknameBlur(e) {
     const nickname = e.detail.value
-    this.setData({
-      nickname,
-      userInfo: {
-        ...this.data.userInfo,
-        nickName: nickname,
-        name: this.data.userInfo?.name || nickname
-      },
-      hasProfile: !!nickname
-    })
+    this.setData({ nickname })
     if (nickname) {
       try {
         await api.user.setName(nickname)
@@ -89,8 +83,13 @@ Page({
   async loadLatestRecords() {
     this.setData({ isLoading: true })
     const list = await api.sign.getRecords()
+    let records = Array.isArray(list) ? list : []
+    records = records
+      .map(r => ({ ...r, sign_in_time: formatRecordTime(r.sign_in_time) }))
+      .sort((a, b) => b.sign_in_time.localeCompare(a.sign_in_time))
+      .slice(0, 3)
     this.setData({
-      signRecords: Array.isArray(list) ? list.slice(0, 3) : [],
+      signRecords: records,
       isLoading: false
     })
   },
@@ -123,5 +122,52 @@ Page({
 
   onPullDownRefresh() {
     this.initPage().finally(() => wx.stopPullDownRefresh())
+  },
+
+  // 考研倒计时 - 2026年12月18日 08:30
+  countdownTimer: null,
+
+  startCountdown() {
+    this.updateCountdown()
+    this.countdownTimer = setInterval(() => {
+      this.updateCountdown()
+    }, 1000)
+  },
+
+  stopCountdown() {
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer)
+      this.countdownTimer = null
+    }
+  },
+
+  updateCountdown() {
+    const examDate = new Date(2026, 11, 18, 8, 30, 0) // 12月18日 08:30
+    const now = new Date()
+    let diff = examDate - now
+
+    if (diff <= 0) {
+      this.setData({
+        countdown: { days: '0', hours: '00', minutes: '00', seconds: '00' }
+      })
+      return
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    diff -= days * 1000 * 60 * 60 * 24
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    diff -= hours * 1000 * 60 * 60
+    const minutes = Math.floor(diff / (1000 * 60))
+    diff -= minutes * 1000 * 60
+    const seconds = Math.floor(diff / 1000)
+
+    this.setData({
+      countdown: {
+        days: String(days),
+        hours: String(hours).padStart(2, '0'),
+        minutes: String(minutes).padStart(2, '0'),
+        seconds: String(seconds).padStart(2, '0')
+      }
+    })
   }
 })

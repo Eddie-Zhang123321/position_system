@@ -1,22 +1,14 @@
   <view class="container">
   <!-- 欢迎卡片 -->
   <view class="card header-card">
-    <view class="row space-between">
-      <view>
+    <view class="header-top">
+      <view class="header-left">
         <view class="title">考研教室座位系统</view>
-        <view class="subtitle">欢迎，{{userInfo && (userInfo.name || userInfo.nickName) ? (userInfo.name || userInfo.nickName) : '同学'}}</view>
+        <view class="subtitle">欢迎，{{userInfo && userInfo.name ? userInfo.name : '同学'}}</view>
       </view>
       <van-loading wx:if="{{isLoginLoading}}" size="20px" type="spinner" />
-      <image wx:elif="{{userInfo && userInfo.avatarUrl}}" class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" />
-      <van-icon wx:else name="user-circle-o" size="32px" color="#4A90E2" />
     </view>
-    <view class="auth-tip">
-      <text>完善头像与昵称</text>
-    </view>
-    <view class="profile-row">
-        <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-        <image class="avatar-lg" src="{{avatarUrl || userInfo.avatarUrl || '/images/home.png'}}" mode="aspectFill"></image>
-        </button>
+    <view class="nickname-row">
       <input
         class="nickname-input"
         type="nickname"
@@ -24,16 +16,46 @@
         value="{{nickname || userInfo.nickName || userInfo.name}}"
         bindblur="onNicknameBlur"
       />
-        </view>
+    </view>
     <view class="seat-status">
       <van-cell
         title="绑定座位"
         value="{{seatId ? ('座位 ' + seatId) : '暂未绑定'}}"
-        label="{{seatId ? '点击“座位图”可查看详情' : '请先前往座位图选择座位'}}"
+        label="{{seatId ? '前往座位图查看详情' : '请先前往座位图选择座位'}}"
         use-label-slot
         border="{{false}}"
       />
     </view>
+  </view>
+
+  <!-- 考研倒计时 -->
+  <view class="card countdown-card">
+    <view class="countdown-header">
+      <van-icon name="clock-o" size="32rpx" color="#4A90E2" />
+      <text class="countdown-label">2027考研倒计时</text>
+    </view>
+    <view class="countdown-body">
+      <view class="countdown-item">
+        <text class="countdown-num">{{countdown.days}}</text>
+        <text class="countdown-unit">天</text>
+      </view>
+      <text class="countdown-sep">:</text>
+      <view class="countdown-item">
+        <text class="countdown-num">{{countdown.hours}}</text>
+        <text class="countdown-unit">时</text>
+      </view>
+      <text class="countdown-sep">:</text>
+      <view class="countdown-item">
+        <text class="countdown-num">{{countdown.minutes}}</text>
+        <text class="countdown-unit">分</text>
+      </view>
+      <text class="countdown-sep">:</text>
+      <view class="countdown-item">
+        <text class="countdown-num">{{countdown.seconds}}</text>
+        <text class="countdown-unit">秒</text>
+      </view>
+    </view>
+    <view class="countdown-footer">408计算机统考 · 2026年12月18日</view>
   </view>
 
   <!-- 快捷入口 -->
@@ -58,15 +80,20 @@
     <view wx:if="{{isLoading}}" class="loading-box">
       <van-loading size="24px" color="#4A90E2" /> 加载中...
     </view>
-    <block wx:if="{{!isLoading && signRecords.length}}">
-      <van-cell
-        wx:for="{{signRecords}}"
-        wx:key="sign_in_time"
-        title="{{item.address || '考研教室'}}"
-        label="座位 {{item.table_id || '--'}} · {{item.sign_in_time}}"
-        icon="clock-o"
-      />
-    </block>
-    <van-empty wx:if="{{!isLoading && signRecords.length === 0}}" description="暂无签到记录" />
+    <view class="record-list" wx:if="{{!isLoading && signRecords.length > 0}}">
+      <block wx:for="{{signRecords}}" wx:key="sign_in_time">
+        <view class="record-item">
+          <view class="record-time">{{item.sign_in_time}}</view>
+          <view class="record-info">
+            <text class="record-type {{item.typ === 'In' ? 'type-in' : 'type-out'}}">
+              {{item.typ === 'In' ? '签到' : '签退'}}
+            </text>
+            <text class="record-address">{{item.address || '考研教室'}}</text>
+            <text class="record-table">座位: {{item.table_id || '--'}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+    <view class="empty-records" wx:if="{{!isLoading && signRecords.length === 0}}">暂无签到记录</view>
   </view>
 </view>

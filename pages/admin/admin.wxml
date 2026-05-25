@@ -28,23 +28,33 @@
   <view class="tab-content" wx:if="{{activeTab === 'online'}}">
     <view class="card">
       <view class="card-header">
-        <view class="card-title">实时在线情况</view>
-        <view class="online-count">在线: {{onlineUsers.length}} / {{users.length}}</view>
+        <view class="card-title">实时在线 · 座位概览</view>
+        <view class="online-count">在线: {{onlineCount}} / {{boundSeatCount}}</view>
       </view>
       <view wx:if="{{isLoading}}" class="loading-box">
         <van-loading size="22px" color="#4A90E2" /> 加载中...
       </view>
       <block wx:else>
-        <van-cell-group>
-          <van-cell wx:for="{{users}}" wx:key="openid"
-            title="{{item.name || '未命名'}}"
-            label="座位 {{item.table_id || '--'}}"
-            value="{{item.is_online ? '在线' : '离线'}}"
-            icon="{{item.is_online ? 'success' : 'cross'}}"
-            value-class="{{item.is_online ? 'online-status' : 'offline-status'}}"
-          />
-        </van-cell-group>
-        <van-empty wx:if="{{users.length === 0}}" description="暂无用户" />
+        <scroll-view class="seat-scroll" scroll-y>
+          <view class="seat-grid">
+            <block wx:for="{{tables}}" wx:key="id">
+              <view class="seat-card {{item.bindUserOnline ? 'seat-online' : (item.bind_user_openid ? 'seat-offline' : 'seat-empty')}}">
+                <view class="seat-num">{{item.id}}</view>
+                <view class="seat-bind-name">{{item.bindUserName || '空闲'}}</view>
+                <view class="seat-online-tag" wx:if="{{item.bind_user_openid}}">
+                  <text wx:if="{{item.bindUserOnline}}" class="tag-online">● 在线</text>
+                  <text wx:else class="tag-offline">○ 离线</text>
+                </view>
+              </view>
+            </block>
+          </view>
+        </scroll-view>
+        <view class="seat-legend">
+          <text class="legend-item"><text class="dot dot-online"></text> 在线</text>
+          <text class="legend-item"><text class="dot dot-offline"></text> 离线</text>
+          <text class="legend-item"><text class="dot dot-empty"></text> 空闲</text>
+        </view>
+        <van-empty wx:if="{{tables.length === 0}}" description="暂无座位" />
       </block>
     </view>
   </view>

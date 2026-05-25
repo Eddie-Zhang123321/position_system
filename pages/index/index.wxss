@@ -6,18 +6,6 @@ page {
   padding: 30rpx;
 }
 
-.avatar {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 50%;
-}
-
-.avatar-lg {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 50%;
-}
-
 .card {
   background: #fff;
   border-radius: 16rpx;
@@ -26,26 +14,21 @@ page {
   box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
-.auth-tip {
-  margin-top: 20rpx;
+/* 顶部 */
+.header-top {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  color: #666;
-  font-size: 26rpx;
+  justify-content: space-between;
 }
 
-.profile-row {
+.header-left {
+  flex: 1;
+}
+
+.nickname-row {
   margin-top: 16rpx;
   display: flex;
   align-items: center;
-  gap: 20rpx;
-}
-
-.avatar-wrapper {
-  padding: 0;
-  border: none;
-  background: transparent;
 }
 
 .nickname-input {
@@ -75,10 +58,6 @@ page {
   align-items: center;
 }
 
-.space-between {
-  justify-content: space-between;
-}
-
 .section-title {
   font-size: 32rpx;
   color: #333;
@@ -92,9 +71,62 @@ page {
   gap: 16rpx;
 }
 
-.records-card .van-cell {
-  padding-left: 0;
-  padding-right: 0;
+/* 签到记录（与签到页一致） */
+.record-list {
+  margin-top: 10rpx;
+}
+
+.record-item {
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #eee;
+}
+
+.record-time {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+}
+
+.record-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15rpx;
+}
+
+.record-type {
+  font-size: 24rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 4rpx;
+  font-weight: bold;
+}
+
+.record-type.type-in {
+  background-color: #e6f7ff;
+  color: #1890ff;
+}
+
+.record-type.type-out {
+  background-color: #fff7e6;
+  color: #fa8c16;
+}
+
+.record-address {
+  font-size: 26rpx;
+  color: #333;
+  flex: 1;
+}
+
+.record-table {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.empty-records {
+  text-align: center;
+  padding: 40rpx 0;
+  font-size: 26rpx;
+  color: #999;
 }
 
 .loading-box {
@@ -102,4 +134,64 @@ page {
   align-items: center;
   gap: 12rpx;
   color: #666;
+}
+
+/* 考研倒计时 */
+.countdown-card {
+  background: #fff;
+}
+
+.countdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  margin-bottom: 24rpx;
+}
+
+.countdown-label {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.countdown-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.countdown-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80rpx;
+}
+
+.countdown-num {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #4A90E2;
+  line-height: 1.2;
+}
+
+.countdown-unit {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 2rpx;
+}
+
+.countdown-sep {
+  font-size: 40rpx;
+  font-weight: 300;
+  color: #ccc;
+  padding-bottom: 16rpx;
+}
+
+.countdown-footer {
+  text-align: center;
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 20rpx;
 }
