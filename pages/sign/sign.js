@@ -33,6 +33,11 @@ Page({
     if (options.openid) {
       this.setData({ viewOpenid: options.openid })
       this.loadUserRecords(options.openid)
+    } else if (app.globalData.viewUserOpenid) {
+      const viewOpenid = app.globalData.viewUserOpenid
+      app.globalData.viewUserOpenid = null
+      this.setData({ viewOpenid: viewOpenid })
+      this.loadUserRecords(viewOpenid)
     } else {
       this.checkLoginAndLoadData()
     }
@@ -46,11 +51,8 @@ Page({
       // 清除全局数据，避免下次进入页面时误触发
       app.globalData.viewUserOpenid = null
       
-      // 如果当前不是查看该用户，则加载该用户的记录
-      if (this.data.viewOpenid !== viewOpenid) {
-        this.setData({ viewOpenid: viewOpenid })
-        this.loadUserRecords(viewOpenid)
-      }
+      this.setData({ viewOpenid: viewOpenid })
+      this.loadUserRecords(viewOpenid)
     } else if (!this.data.viewOpenid) {
       // 如果是查看自己的记录，每次返回页面都重新拉取
       this.checkLoginAndLoadData()
@@ -184,7 +186,8 @@ Page({
   // 加载指定用户的签到记录（管理员模式）
   loadUserRecords: function(openid) {
     this.setData({
-      isLoading: true
+      isLoading: true,
+      signRecords: []
     })
 
     // 先获取用户信息
@@ -312,6 +315,26 @@ Page({
 
   // 返回选座
   goBack: function() {
+    const app = getApp()
+    const returnRoute = app.globalData.signReturnRoute
+
+    if (this.data.viewOpenid && returnRoute) {
+      app.globalData.signReturnRoute = null
+      this.setData({
+        viewOpenid: null,
+        viewUserName: '',
+        signRecords: []
+      })
+      wx.navigateTo({ url: returnRoute })
+      return
+    }
+
+    const pages = getCurrentPages()
+    if (pages.length > 1) {
+      wx.navigateBack()
+      return
+    }
+
     wx.switchTab({ url: '/pages/seat/seat' })
   }
 })

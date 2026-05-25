@@ -1,6 +1,7 @@
 <view class="container">
   <!-- 页面标题 -->
   <view class="page-header">
+    <button class="back-btn" wx:if="{{viewOpenid}}" bindtap="goBack">返回</button>
     <text class="title">{{viewOpenid ? '用户签到记录' : '签到签退'}}</text>
     <text class="subtitle" wx:if="{{viewOpenid}}">{{viewUserName}}</text>
   </view>

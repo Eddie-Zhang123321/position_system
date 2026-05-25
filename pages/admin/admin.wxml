@@ -38,7 +38,12 @@
         <scroll-view class="seat-scroll" scroll-y>
           <view class="seat-grid">
             <block wx:for="{{tables}}" wx:key="id">
-              <view class="seat-card {{item.bindUserOnline ? 'seat-online' : (item.bind_user_openid ? 'seat-offline' : 'seat-empty')}}">
+              <view
+                class="seat-card {{item.bindUserOnline ? 'seat-online' : (item.bind_user_openid ? 'seat-offline' : 'seat-empty')}}"
+                bindtap="viewUserSignRecords"
+                data-openid="{{item.bind_user_openid}}"
+                data-seat-id="{{item.id}}"
+              >
                 <view class="seat-num">{{item.id}}</view>
                 <view class="seat-bind-name">{{item.bindUserName || '空闲'}}</view>
                 <view class="seat-online-tag" wx:if="{{item.bind_user_openid}}">
@@ -53,6 +58,24 @@
           <text class="legend-item"><text class="dot dot-online"></text> 在线</text>
           <text class="legend-item"><text class="dot dot-offline"></text> 离线</text>
           <text class="legend-item"><text class="dot dot-empty"></text> 空闲</text>
+        </view>
+        <view class="export-panel">
+          <view class="date-range">
+            <picker mode="date" value="{{exportStartDate}}" bindchange="onExportStartDateChange">
+              <view class="date-picker">开始 {{exportStartDate}}</view>
+            </picker>
+            <picker mode="date" value="{{exportEndDate}}" bindchange="onExportEndDateChange">
+              <view class="date-picker">结束 {{exportEndDate}}</view>
+            </picker>
+          </view>
+          <view class="export-actions">
+            <view class="export-action-item">
+              <van-button custom-class="export-btn" size="small" type="primary" color="#4A90E2" bindtap="exportSignRecordsByRange">导出签到签退</van-button>
+            </view>
+            <view class="export-action-item">
+              <van-button custom-class="export-btn" size="small" type="info" color="#52C41A" bindtap="exportYesterdayNotSignedOut">导出昨日未签退</van-button>
+            </view>
+          </view>
         </view>
         <van-empty wx:if="{{tables.length === 0}}" description="暂无座位" />
       </block>

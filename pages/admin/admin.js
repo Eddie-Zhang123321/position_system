@@ -11,6 +11,48 @@ const formatRecordTime = (timeStr) => {
   return `${bj.getUTCFullYear()}-${pad(bj.getUTCMonth() + 1)}-${pad(bj.getUTCDate())} ${pad(bj.getUTCHours())}:${pad(bj.getUTCMinutes())}`
 }
 
+const pad2 = n => String(n).padStart(2, '0')
+
+const formatDate = (date) => {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
+}
+
+const getTodayDate = () => formatDate(new Date())
+
+const getYesterdayDate = () => {
+  const date = new Date()
+  date.setDate(date.getDate() - 1)
+  return formatDate(date)
+}
+
+const parseFormattedTime = (timeStr) => {
+  if (!timeStr) return 0
+  const m = timeStr.match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/)
+  if (!m) return 0
+  return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]).getTime()
+}
+
+const parseDateStart = (dateStr) => {
+  const m = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/)
+  if (!m) return 0
+  return new Date(+m[1], +m[2] - 1, +m[3], 0, 0, 0, 0).getTime()
+}
+
+const parseDateEnd = (dateStr) => {
+  const m = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/)
+  if (!m) return 0
+  return new Date(+m[1], +m[2] - 1, +m[3], 23, 59, 59, 999).getTime()
+}
+
+const escapeXml = (value) => {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
 Page({
   data: {
     isLoading: true,
@@ -20,12 +62,26 @@ Page({
     onlineUsers: [], // 实时在线用户
     durationList: [], // 在线时长列表
     records: [],
+    exportStartDate: getTodayDate(),
+    exportEndDate: getTodayDate(),
     showAllQRCodes: false, // 是否显示所有二维码弹窗
     qrCodes: [], // 所有座位的二维码列表
     loadingQRCodes: false // 加载二维码中
   },
 
+  onLoad(options) {
+    if (options?.tab) {
+      this.setData({ activeTab: options.tab })
+    }
+  },
+
   async onShow() {
+    if (this.skipNextOnShowReloadUntil && Date.now() < this.skipNextOnShowReloadUntil) {
+      this.skipNextOnShowReloadUntil = 0
+      return
+    }
+    this.skipNextOnShowReloadUntil = 0
+
     try {
       await this.ensureAdmin()
       await this.loadAllData()
@@ -134,7 +190,7 @@ Page({
         onlineCount: onlineUsers.length,
         boundSeatCount: boundSeatCount,
         durationList: durationList,
-        records: (records || []).map(r => ({ ...r, sign_in_time: formatRecordTime(r.sign_in_time) })),
+        records: this.formatAndSortRecords(records),
         isLoading: false
       })
     } catch (err) {
@@ -164,7 +220,197 @@ Page({
   },
 
   // 切换标签页
-  switchTab: function(e) {
+
+  formatAndSortRecords(records) {
+    return (records || [])
+      .map(r => {
+        const formattedTime = formatRecordTime(r.sign_in_time)
+        return {
+          ...r,
+          sign_in_time: formattedTime,
+          recordTime: parseFormattedTime(formattedTime)
+        }
+      })
+      .sort((a, b) => b.recordTime - a.recordTime)
+  },
+
+  formatDurationList(rawList, users) {
+    return (rawList || [])
+      .map(item => {
+        let openid = item.openid
+        if (!openid && item.table_id) {
+          const user = (users || []).find(u => u.table_id === item.table_id)
+          if (user) {
+            openid = user.openid
+          }
+        }
+        return {
+          ...item,
+          openid: openid || item.openid,
+          durationText: this.formatDuration(item.duration_seconds)
+        }
+      })
+      .sort((a, b) => b.duration_seconds - a.duration_seconds)
+  },
+
+  onExportStartDateChange(e) {
+    const exportStartDate = e.detail.value
+    const exportEndDate = this.data.exportEndDate < exportStartDate ? exportStartDate : this.data.exportEndDate
+    this.setData({ exportStartDate, exportEndDate })
+  },
+
+  onExportEndDateChange(e) {
+    const exportEndDate = e.detail.value
+    const exportStartDate = this.data.exportStartDate > exportEndDate ? exportEndDate : this.data.exportStartDate
+    this.setData({ exportStartDate, exportEndDate })
+  },
+
+  getRecordsInRange(startDate, endDate) {
+    const startTime = parseDateStart(startDate)
+    const endTime = parseDateEnd(endDate)
+    return (this.data.records || [])
+      .filter(item => item.recordTime >= startTime && item.recordTime <= endTime)
+      .sort((a, b) => b.recordTime - a.recordTime)
+  },
+
+  buildExcelXml(sheetName, columns, rows) {
+    const headerCells = columns
+      .map(col => `<Cell><Data ss:Type="String">${escapeXml(col.title)}</Data></Cell>`)
+      .join('')
+    const bodyRows = rows.map(row => {
+      const cells = columns
+        .map(col => `<Cell><Data ss:Type="String">${escapeXml(row[col.key])}</Data></Cell>`)
+        .join('')
+      return `<Row>${cells}</Row>`
+    }).join('')
+
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <Worksheet ss:Name="${escapeXml(sheetName)}">
+  <Table>
+   <Row>${headerCells}</Row>
+   ${bodyRows}
+  </Table>
+ </Worksheet>
+</Workbook>`
+  },
+
+  writeAndOpenExcel(fileName, sheetName, columns, rows) {
+    if (this.isExporting) return
+
+    if (!rows.length) {
+      wx.showToast({ title: '暂无可导出数据', icon: 'none' })
+      return
+    }
+
+    this.isExporting = true
+    const fs = wx.getFileSystemManager()
+    const filePath = `${wx.env.USER_DATA_PATH}/${fileName}.xls`
+    const data = this.buildExcelXml(sheetName, columns, rows)
+
+    wx.showLoading({ title: '导出中...' })
+    fs.writeFile({
+      filePath,
+      data,
+      encoding: 'utf8',
+      success: () => {
+        this.skipNextOnShowReloadUntil = Date.now() + 5 * 60 * 1000
+        wx.openDocument({
+          filePath,
+          fileType: 'xls',
+          showMenu: true,
+          success: () => wx.showToast({ title: '导出成功' }),
+          fail: (err) => {
+            console.error('打开 Excel 失败', err)
+            wx.showToast({ title: '打开失败', icon: 'none' })
+          }
+        })
+      },
+      fail: (err) => {
+        console.error('写入 Excel 失败', { filePath, err })
+        wx.showToast({ title: '导出失败', icon: 'none' })
+      },
+      complete: () => {
+        this.isExporting = false
+        wx.hideLoading()
+      }
+    })
+  },
+
+  async exportSignRecordsByRange() {
+    const { exportStartDate, exportEndDate } = this.data
+    try {
+      const latestRecords = await api.sign.getAllRecords()
+      this.setData({ records: this.formatAndSortRecords(latestRecords) })
+    } catch (err) {
+      console.error('刷新签到记录失败', err)
+      wx.showToast({ title: '刷新记录失败', icon: 'none' })
+      return
+    }
+
+    const records = this.getRecordsInRange(exportStartDate, exportEndDate)
+    const rows = records.map((item, index) => ({
+      index: index + 1,
+      name: item.name || item.nickname || '',
+      table_id: item.table_id || '',
+      type: item.typ === 'In' ? '签到' : '签退',
+      time: item.sign_in_time || '',
+      address: item.address || ''
+    }))
+
+    this.writeAndOpenExcel(
+      `签到签退记录_${exportStartDate}_${exportEndDate}`,
+      '签到签退记录',
+      [
+        { title: '序号', key: 'index' },
+        { title: '姓名', key: 'name' },
+        { title: '座位', key: 'table_id' },
+        { title: '类型', key: 'type' },
+        { title: '时间', key: 'time' },
+        { title: '地址', key: 'address' }
+      ],
+      rows
+    )
+  },
+
+  exportYesterdayNotSignedOut() {
+    const yesterday = getYesterdayDate()
+    const records = this.getRecordsInRange(yesterday, yesterday).sort((a, b) => a.recordTime - b.recordTime)
+    const latestByUser = {}
+
+    records.forEach(item => {
+      const key = item.openid || `table_${item.table_id}`
+      latestByUser[key] = item
+    })
+
+    const rows = Object.values(latestByUser)
+      .filter(item => item.typ === 'In')
+      .sort((a, b) => (a.table_id || 999999) - (b.table_id || 999999))
+      .map((item, index) => ({
+        index: index + 1,
+        name: item.name || item.nickname || '',
+        table_id: item.table_id || '',
+        sign_in_time: item.sign_in_time || '',
+        address: item.address || ''
+      }))
+
+    this.writeAndOpenExcel(
+      `昨日未签退名单_${yesterday}`,
+      '昨日未签退名单',
+      [
+        { title: '序号', key: 'index' },
+        { title: '姓名', key: 'name' },
+        { title: '座位', key: 'table_id' },
+        { title: '最后签到时间', key: 'sign_in_time' },
+        { title: '地址', key: 'address' }
+      ],
+      rows
+    )
+  },  switchTab: function(e) {
     const tab = e.currentTarget.dataset.tab
     this.setData({ activeTab: tab })
     // 切换标签时刷新数据
@@ -268,6 +514,7 @@ Page({
     // 将 openid 存储到全局数据中（因为 tabBar 页面不能通过 URL 参数传递）
     const app = getApp()
     app.globalData.viewUserOpenid = openid
+    app.globalData.signReturnRoute = `/pages/admin/admin?tab=${this.data.activeTab || 'online'}`
     
     console.log('准备跳转到签到页面，openid:', openid)
     wx.switchTab({
